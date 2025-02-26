@@ -10,12 +10,15 @@ library(stats)
 setwd("YOUR FOLDER")
 
 # import csv file
-data <- read.csv("data/knn_dataset.csv")
+data <- read.csv("data/knn_data_toy.csv")
+
+# Create invfpod_rt_high variable
+median_value <- median(data$invfpod_rt, na.rm = TRUE)
+data$invfpod_rt_high <- ifelse(data$invfpod_rt <= median_value, 0, 1)
 
 # Define outcome and treatment variables
-outcome <- as.vector(data$seps) #binary outcome (sepsis)
+outcome <- as.vector(data$seps) # binary outcome (sepsis)
 treatment <- as.vector(data$invfpod_rt_high) # binary treatment (high parenteral nutrition duration ratio)
-
 
 ### 1. Build causal forest model (GRF)
 # Define covariates
@@ -24,7 +27,7 @@ Y <- outcome
 W <- treatment
 
 # Generate causal forest model
-set.seed(20241111, kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rejection")
+set.seed(250225, kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rejection")
 cf <- causal_forest(X = as.matrix(X), Y = outcome, W = treatment, Y.hat = NULL, W.hat = NULL, tune.parameters = "all", num.trees = 2000, tune.num.trees = 100)
 
 # Perform calibration test
@@ -41,7 +44,7 @@ print(fit_index)
 
 ### 2. ATE and ITE estimation
 # Average Treatment Effect (ATE) estimation
-ate.result <- average_treatment_effect(cf, method = "AIPW", num.trees.for.weights = 1000)
+ate.result <- average_treatment_effect(cf, method = "AIPW", num.trees.for.weights = 1000, target.sample = "overlap")
 ate.est <- ate.result[1]
 ate.se <- ate.result[2]
 ate.tstat <- ate.est / ate.se
