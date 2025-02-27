@@ -6,6 +6,7 @@ library(marginaleffects)
 
 # Reproducibility details
 # R version 4.4.1 was used.
+# MatchIt 4.4.5, rbounds 2.2 were used.
 
 # Set working directory (replace with your actual folder path)
 setwd("YOUR FOLDER")
