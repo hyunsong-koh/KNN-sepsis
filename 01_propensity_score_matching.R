@@ -1,4 +1,4 @@
-library(tidyverse)    
+library(tidyverse)
 library(MatchIt)        
 library(cobalt)         
 library(rbounds)        
@@ -9,10 +9,10 @@ library(marginaleffects)
 # MatchIt 4.4.5, rbounds 2.2 were used.
 
 # Set working directory (replace with your actual folder path)
-setwd("YOUR FOLDER")
+setwd("Your Folder")
 
 # Import CSV data
-data <- read_csv("Your_DATA")
+data <- read_csv("Your DATA")
 
 # Create Treatment variable
 median_invfpod_rt <- median(data$invfpod_rt, na.rm=TRUE)
@@ -21,9 +21,9 @@ data$treatment <- ifelse(data$invfpod_rt > median_invfpod_rt, 1, 0)
 # Remove 'invfpod_rt'
 data <- data %>% dplyr::select(-invfpod_rt)
 
-# Perform propensity score matching (exclude the outcome variable 'seps_v2' from matching)
+# Perform propensity score matching (exclude the outcome variable 'seps' from matching)
 set.seed(0)
-m1 <- matchit(treatment ~ . -seps_v2, 
+m1 <- matchit(treatment ~ . -seps, 
               data=data, 
               method="nearest", # Nearest neighbor matching
               distance="glm", 
@@ -48,7 +48,7 @@ love.plot(m1, thresholds=0.1,
 matched_df <- match.data(m1)
 
 # Estimate ATT
-lr <- glm(seps_v2 ~ . - PS - distance - weights - subclass, # remove the matching-related variables (PS, distance, weights, subclass)
+lr <- glm(seps ~ . - distance - weights - subclass, # remove the matching-related variables (distance, weights, subclass)
                   family = binomial, # using logistic regression
                   data=matched_df)
 
@@ -61,8 +61,8 @@ lr_compare = avg_comparisons(lr,
 print(lr_compare) 
 
 # ATT sensitivity test (psens only 1:1)
-x <- matched_df %>% filter(treatment == 1) %>% pull(seps_v2)  
-y <- matched_df %>% filter(treatment == 0) %>% pull(seps_v2)  
+x <- matched_df %>% filter(treatment == 1) %>% pull(seps)  
+y <- matched_df %>% filter(treatment == 0) %>% pull(seps)  
 psens_sensitivity_analysis1 <- psens(x = x, y = y, Gamma = 3, GammaInc = 0.1)  # Adjust Gamma and GammaInc values as needed for your analysis
 
 # Summary of sensitivity analysis results
